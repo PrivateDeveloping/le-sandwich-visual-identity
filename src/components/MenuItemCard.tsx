@@ -1,10 +1,20 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Minus, MessageCircle } from "lucide-react";
-import { buildWhatsAppUrl, type MenuItem } from "@/config/brand";
+import { Plus, Minus, ShoppingBag, Check } from "lucide-react";
+import type { MenuItem } from "@/config/brand";
+import { useCart } from "@/context/CartContext";
 
 const MenuItemCard = ({ item }: { item: MenuItem }) => {
   const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState(false);
+  const { addToCart } = useCart();
+
+  const handleAdd = () => {
+    addToCart(item, qty);
+    setAdded(true);
+    setQty(1);
+    setTimeout(() => setAdded(false), 1200);
+  };
 
   const tagColors: Record<string, string> = {
     "Best Seller": "bg-primary text-primary-foreground",
@@ -33,7 +43,6 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => {
         </div>
       )}
       <div className="p-4 md:p-5">
-        {/* Tags */}
         {item.tags && (
           <div className="flex gap-2 mb-2">
             {item.tags.map((tag) => (
@@ -60,7 +69,7 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => {
           {item.description}
         </p>
 
-        {/* Qty + Order */}
+        {/* Qty + Add to Cart */}
         <div className="flex items-center gap-3">
           <div className="flex items-center border border-border">
             <button
@@ -77,15 +86,26 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => {
               <Plus size={14} />
             </button>
           </div>
-          <a
-            href={buildWhatsAppUrl(item.name, qty)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 bg-primary text-primary-foreground font-display font-bold uppercase text-xs text-center py-2.5 flex items-center justify-center gap-2 hover:brightness-110 transition-all"
+          <button
+            onClick={handleAdd}
+            className={`flex-1 font-display font-bold uppercase text-xs text-center py-2.5 flex items-center justify-center gap-2 transition-all ${
+              added
+                ? "bg-green-600 text-foreground"
+                : "bg-primary text-primary-foreground hover:brightness-110"
+            }`}
           >
-            <MessageCircle size={14} />
-            Order
-          </a>
+            {added ? (
+              <>
+                <Check size={14} />
+                Added!
+              </>
+            ) : (
+              <>
+                <ShoppingBag size={14} />
+                Add to Cart
+              </>
+            )}
+          </button>
         </div>
       </div>
     </motion.div>
