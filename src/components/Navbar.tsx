@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShoppingBag } from "lucide-react";
 import { buildGeneralWhatsAppUrl } from "@/config/brand";
+import { useCart } from "@/context/CartContext";
 
 const NAV_LINKS = [
   { label: "Menu", href: "#menu" },
@@ -12,6 +13,7 @@ const NAV_LINKS = [
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { totalItems, setDrawerOpen } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -41,6 +43,17 @@ const Navbar = () => {
               {link.label}
             </a>
           ))}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="relative text-foreground hover:text-primary transition-colors"
+          >
+            <ShoppingBag size={22} />
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground font-display font-bold text-[10px] w-5 h-5 flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
+          </button>
           <a
             href={buildGeneralWhatsAppUrl()}
             target="_blank"
@@ -51,10 +64,23 @@ const Navbar = () => {
           </a>
         </div>
 
-        {/* Mobile toggle */}
-        <button onClick={() => setOpen(!open)} className="md:hidden text-foreground">
-          {open ? <X size={28} /> : <Menu size={28} />}
-        </button>
+        {/* Mobile right side */}
+        <div className="flex md:hidden items-center gap-3">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="relative text-foreground hover:text-primary transition-colors"
+          >
+            <ShoppingBag size={24} />
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground font-display font-bold text-[10px] w-5 h-5 flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
+          </button>
+          <button onClick={() => setOpen(!open)} className="text-foreground">
+            {open ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
