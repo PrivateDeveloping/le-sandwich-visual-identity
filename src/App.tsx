@@ -7,9 +7,12 @@ import { CartProvider } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import OrderTracking from "./pages/OrderTracking.tsx";
 
 const queryClient = new QueryClient();
 
+// CartDrawer is now INSIDE BrowserRouter so CheckoutDialog can use useNavigate
+// to redirect to the tracking page after a successful order.
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -18,8 +21,10 @@ const App = () => (
         <Sonner />
         <CartDrawer />
         <BrowserRouter>
+          <CartDrawer />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/order/:trackingToken" element={<OrderTracking />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
