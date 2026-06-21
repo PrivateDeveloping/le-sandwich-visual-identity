@@ -6,6 +6,11 @@
 export const WHATSAPP_NUMBER = "+38344364860";
 export const INSTAGRAM_HANDLE = "lesandwichshop";
 export const INSTAGRAM_URL = "https://www.instagram.com/lesandwichshop/";
+export const VIBER_TEST_ITEM_ID = "le-burger";
+
+const getWhatsAppNumber = () => WHATSAPP_NUMBER.replace(/\D/g, "");
+const buildSingleItemOrderMessage = (itemName: string, quantity: number) =>
+  encodeURIComponent(`Përshëndetje, dua të porosis ${quantity} x ${itemName}.`);
 
 export const LOCATIONS = [
   {
@@ -45,6 +50,12 @@ export type Promo = {
   active: boolean;
 };
 
+export type CartWhatsAppItem = {
+  name: string;
+  price: number;
+  quantity: number;
+};
+
 export const PROMOS: Promo[] = [
   {
     title: "TUNA TUESDAY",
@@ -66,14 +77,31 @@ export const PROMOS: Promo[] = [
   },
 ];
 
+export const formatPrice = (amount: number) => `${amount.toFixed(2)}€`;
+
 export const buildWhatsAppUrl = (itemName: string, quantity: number) => {
-  const message = encodeURIComponent(
-    `Përshëndetje, dua të porosis ${quantity} x ${itemName}.`
-  );
-  return `https://wa.me/${WHATSAPP_NUMBER.replace(/\s/g, "")}?text=${message}`;
+  const message = buildSingleItemOrderMessage(itemName, quantity);
+  return `https://wa.me/${getWhatsAppNumber()}?text=${message}`;
+};
+
+export const buildViberTestUrl = (itemName: string, quantity: number) => {
+  const message = buildSingleItemOrderMessage(itemName, quantity);
+  return `viber://forward?text=${message}`;
 };
 
 export const buildGeneralWhatsAppUrl = () => {
   const message = encodeURIComponent("Përshëndetje, dua të bëj një porosi.");
-  return `https://wa.me/${WHATSAPP_NUMBER.replace(/\s/g, "")}?text=${message}`;
+  return `https://wa.me/${getWhatsAppNumber()}?text=${message}`;
+};
+
+export const buildCartWhatsAppUrl = (items: CartWhatsAppItem[]) => {
+  const lines = items.map(
+    (item) => `- ${item.quantity} x ${item.name} (${formatPrice(item.price)})`,
+  );
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const message = encodeURIComponent(
+    `Përshëndetje! Dua të porosis:\n\n${lines.join("\n")}\n\nTotal: ${formatPrice(total)}\n\nFaleminderit!`,
+  );
+
+  return `https://wa.me/${getWhatsAppNumber()}?text=${message}`;
 };

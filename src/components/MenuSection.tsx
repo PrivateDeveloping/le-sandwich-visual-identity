@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MENU_ITEMS } from "@/config/menu";
+import { Loader2, AlertCircle } from "lucide-react";
+import { useMenu } from "@/hooks/useMenu";
 import MenuItemCard from "./MenuItemCard";
 
 const CATEGORIES = [
@@ -12,8 +13,9 @@ const CATEGORIES = [
 
 const MenuSection = () => {
   const [active, setActive] = useState<string>("burgers");
+  const { data: items, isLoading, isError } = useMenu();
 
-  const filtered = MENU_ITEMS.filter((item) => item.category === active);
+  const filtered = (items ?? []).filter((item) => item.category === active);
 
   return (
     <section id="menu" className="bg-brand-dark py-20 md:py-32">
@@ -49,12 +51,34 @@ const MenuSection = () => {
           ))}
         </div>
 
+        {/* States */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p className="font-body text-sm">Loading menu…</p>
+          </div>
+        )}
+
+        {isError && (
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-center max-w-md mx-auto">
+            <AlertCircle className="h-8 w-8 text-destructive" />
+            <p className="font-display font-bold uppercase text-foreground">
+              Couldn't load menu
+            </p>
+            <p className="font-body text-sm text-muted-foreground">
+              Please check your connection and try again. You can still order via WhatsApp.
+            </p>
+          </div>
+        )}
+
         {/* Items grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-          {filtered.map((item) => (
-            <MenuItemCard key={item.id} item={item} />
-          ))}
-        </div>
+        {!isLoading && !isError && (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+            {filtered.map((item) => (
+              <MenuItemCard key={item.id} item={item} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

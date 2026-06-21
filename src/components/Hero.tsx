@@ -19,8 +19,9 @@ const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container text-center px-4">
+      <div className="relative z-10 w-full px-4">
         <motion.div
+          className="mx-auto flex max-w-5xl flex-col items-center text-center"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -40,7 +41,7 @@ const Hero = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
               href="#menu"
-              className="bg-foreground text-background font-display font-bold uppercase text-sm px-8 py-4 hover:bg-primary hover:text-primary-foreground transition-all w-full sm:w-auto text-center"
+              className="bg-foreground text-background font-display font-bold uppercase text-sm px-8 py-4 hover:bg-primary hover:text-primary-foreground transition-all w-full sm:w-[220px] text-center"
             >
               See the Menu
             </a>
@@ -48,31 +49,17 @@ const Hero = () => {
               href={buildGeneralWhatsAppUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-primary text-primary-foreground font-display font-bold uppercase text-sm px-8 py-4 hover:brightness-110 transition-all w-full sm:w-auto text-center"
+              className="bg-primary text-primary-foreground font-display font-bold uppercase text-sm px-8 py-4 hover:brightness-110 transition-all w-full sm:w-[220px] text-center"
             >
               Order via WhatsApp
             </a>
           </div>
         </motion.div>
-
-        {/* Taste of Kosova badge */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.6 }}
-          className="absolute bottom-32 left-1/2 -translate-x-1/2 flex flex-col items-center"
-        >
-          <div className="w-16 h-16 rounded-full border-2 border-primary flex items-center justify-center mb-2">
-            <span className="font-display text-[10px] text-primary font-bold uppercase leading-tight text-center">
-              Taste of<br />Kosova
-            </span>
-          </div>
-        </motion.div>
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-scroll-down">
-        <ChevronDown className="text-primary" size={32} />
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+        <ChevronDown className="text-primary animate-scroll-down" size={32} />
       </div>
     </section>
   );

@@ -8,6 +8,7 @@ import WhySection from "@/components/WhySection";
 import GallerySection from "@/components/GallerySection";
 import LocationsSection from "@/components/LocationsSection";
 import Footer from "@/components/Footer";
+import CartDrawer from "@/components/CartDrawer";
 
 const Index = () => {
   return (
@@ -22,6 +23,7 @@ const Index = () => {
       <GallerySection />
       <LocationsSection />
       <Footer />
+      <CartDrawer />
     </div>
   );
 };
