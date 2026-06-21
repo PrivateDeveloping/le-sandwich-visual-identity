@@ -13,7 +13,7 @@ const NAV_LINKS = [
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const { totalItems, setDrawerOpen } = useCart();
+  const { totalItems, openCart } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -44,7 +44,7 @@ const Navbar = () => {
             </a>
           ))}
           <button
-            onClick={() => setDrawerOpen(true)}
+            onClick={openCart}
             className="relative text-foreground hover:text-primary transition-colors"
           >
             <ShoppingBag size={22} />
@@ -67,7 +67,7 @@ const Navbar = () => {
         {/* Mobile right side */}
         <div className="flex md:hidden items-center gap-3">
           <button
-            onClick={() => setDrawerOpen(true)}
+            onClick={openCart}
             className="relative text-foreground hover:text-primary transition-colors"
           >
             <ShoppingBag size={24} />

@@ -7,10 +7,10 @@ import { useCart } from "@/context/CartContext";
 const MenuItemCard = ({ item }: { item: MenuItem }) => {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
-  const { addToCart } = useCart();
+  const { addItem } = useCart();
 
   const handleAdd = () => {
-    addToCart(item, qty);
+    addItem(item, qty);
     setAdded(true);
     setQty(1);
     setTimeout(() => setAdded(false), 1200);

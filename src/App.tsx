@@ -19,7 +19,6 @@ const App = () => (
       <CartProvider>
         <Toaster />
         <Sonner />
-        <CartDrawer />
         <BrowserRouter>
           <CartDrawer />
           <Routes>
