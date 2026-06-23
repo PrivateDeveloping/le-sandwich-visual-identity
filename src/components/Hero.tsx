@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { buildGeneralWhatsAppUrl } from "@/config/brand";
 import heroBurger from "@/assets/hero-burger.jpg";
 
 const Hero = () => {
@@ -46,12 +45,10 @@ const Hero = () => {
               See the Menu
             </a>
             <a
-              href={buildGeneralWhatsAppUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#menu"
               className="bg-primary text-primary-foreground font-display font-bold uppercase text-sm px-8 py-4 hover:brightness-110 transition-all w-full sm:w-[220px] text-center"
             >
-              Order via WhatsApp
+              Order Now
             </a>
           </div>
         </motion.div>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Menu, X, ShoppingBag } from "lucide-react";
-import { buildGeneralWhatsAppUrl } from "@/config/brand";
 import { useCart } from "@/context/CartContext";
+import { useSettings } from "@/hooks/useSettings";
+import type { RestaurantSettings, OpenStatus } from "@/hooks/useSettings";
 
 const NAV_LINKS = [
   { label: "Menu", href: "#menu" },
@@ -10,10 +11,62 @@ const NAV_LINKS = [
   { label: "Locations", href: "#locations" },
 ];
 
+type Status = { tone: "paused" | "closed"; label: string; short: string };
+
+/**
+ * Compute the closed/paused status shown in the navbar.
+ * Returns null when the restaurant is open and accepting orders.
+ * Paused trumps closed (more specific — matches the backend precedence).
+ */
+function getStatus(
+  settings: RestaurantSettings | null,
+  openStatus: OpenStatus | null
+): Status | null {
+  if (!settings || !openStatus) return null;
+  if (settings.isPaused)
+    return { tone: "paused", label: "Orders paused", short: "Paused" };
+  if (openStatus.isOpen) return null;
+  if (openStatus.nextOpen)
+    return {
+      tone: "closed",
+      label: `Closed · Opens ${openStatus.nextOpen}`,
+      short: "Closed",
+    };
+  return { tone: "closed", label: "Closed", short: "Closed" };
+}
+
+function StatusChip({
+  status,
+  size = "md",
+}: {
+  status: Status;
+  size?: "sm" | "md";
+}) {
+  const dot = status.tone === "paused" ? "bg-destructive" : "bg-yellow-500";
+  const text = size === "sm" ? status.short : status.label;
+  return (
+    <span
+      className={`flex items-center gap-2 rounded-full border border-border bg-background/80 backdrop-blur-sm font-display font-bold uppercase tracking-wider text-foreground ${
+        size === "sm" ? "px-2.5 py-1 text-[10px] gap-1.5" : "px-4 py-2 text-xs"
+      }`}
+      role="status"
+    >
+      <span
+        className={`shrink-0 rounded-full ${dot} ${
+          size === "sm" ? "h-1.5 w-1.5" : "h-2 w-2"
+        }`}
+      />
+      {text}
+    </span>
+  );
+}
+
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { totalItems, openCart } = useCart();
+  const { settings, openStatus } = useSettings();
+  const status = getStatus(settings, openStatus);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -54,18 +107,21 @@ const Navbar = () => {
               </span>
             )}
           </button>
-          <a
-            href={buildGeneralWhatsAppUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-primary text-primary-foreground font-display font-bold uppercase text-sm px-5 py-2.5 hover:brightness-110 transition-all"
-          >
-            Order Now
-          </a>
+          {status ? (
+            <StatusChip status={status} />
+          ) : (
+            <a
+              href="#menu"
+              className="bg-primary text-primary-foreground font-display font-bold uppercase text-sm px-5 py-2.5 hover:brightness-110 transition-all"
+            >
+              Order Now
+            </a>
+          )}
         </div>
 
         {/* Mobile right side */}
         <div className="flex md:hidden items-center gap-3">
+          {status && <StatusChip status={status} size="sm" />}
           <button
             onClick={openCart}
             className="relative text-foreground hover:text-primary transition-colors"
@@ -97,14 +153,24 @@ const Navbar = () => {
                 {link.label}
               </a>
             ))}
-            <a
-              href={buildGeneralWhatsAppUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-primary text-primary-foreground font-display font-bold uppercase text-center py-3 mt-2"
-            >
-              Order Now
-            </a>
+            {status ? (
+              <div className="mt-2 flex items-center justify-center gap-2 rounded-md border border-border bg-muted/40 py-3 font-display font-bold uppercase text-sm text-foreground">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    status.tone === "paused" ? "bg-destructive" : "bg-yellow-500"
+                  }`}
+                />
+                {status.label}
+              </div>
+            ) : (
+              <a
+                href="#menu"
+                onClick={() => setOpen(false)}
+                className="bg-primary text-primary-foreground font-display font-bold uppercase text-center py-3 mt-2"
+              >
+                Order Now
+              </a>
+            )}
           </div>
         </div>
       )}

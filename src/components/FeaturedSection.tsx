@@ -1,12 +1,32 @@
 import { motion } from "framer-motion";
-import { MessageCircle } from "lucide-react";
-import { MENU_ITEMS } from "@/config/menu";
-import { buildViberTestUrl, buildWhatsAppUrl, VIBER_TEST_ITEM_ID } from "@/config/brand";
+import { ShoppingBag, Lock } from "lucide-react";
+import type { MenuItem } from "@/config/brand";
+import { useMenu } from "@/hooks/useMenu";
+import { useCart } from "@/context/CartContext";
+import { useSettings } from "@/hooks/useSettings";
 
 const FEATURED_IDS = ["le-burger", "steak", "le-chicken", "vegetarian"];
 
 const FeaturedSection = () => {
-  const featured = MENU_ITEMS.filter((item) => FEATURED_IDS.includes(item.id));
+  const { data: items } = useMenu();
+  const { addItem, openCart } = useCart();
+  const { canOrder } = useSettings();
+
+  // Pull the curated picks from the live menu so prices/availability stay in
+  // sync with admin edits. Keep FEATURED_IDS order; skip any that are missing
+  // (e.g. archived or not yet loaded).
+  const featured = FEATURED_IDS.map((id) => items?.find((i) => i.id === id)).filter(
+    (i): i is MenuItem => Boolean(i),
+  );
+
+  const handleOrder = (item: MenuItem) => {
+    if (!canOrder) return;
+    addItem(item, 1);
+    openCart();
+  };
+
+  // Nothing to show yet (still loading) or none of the picks resolved.
+  if (featured.length === 0) return null;
 
   return (
     <section className="bg-background py-20 md:py-32">
@@ -25,8 +45,6 @@ const FeaturedSection = () => {
 
         <div className="space-y-6">
           {featured.map((item, i) => {
-            const showViberTest = item.id === VIBER_TEST_ITEM_ID;
-
             return (
               <motion.div
                 key={item.id}
@@ -66,24 +84,27 @@ const FeaturedSection = () => {
 	                <p className="font-body text-muted-foreground text-base md:text-lg mb-4 leading-relaxed">{item.description}</p>
                   <div className="flex flex-wrap items-center gap-4">
                     <span className="font-display text-3xl md:text-4xl font-black text-primary">{item.price.toFixed(2)}€</span>
-                    <a
-                      href={buildWhatsAppUrl(item.name, 1)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-primary text-primary-foreground font-display font-bold uppercase text-sm px-6 py-3 flex items-center gap-2 hover:brightness-110 transition-all"
+                    <button
+                      onClick={() => handleOrder(item)}
+                      disabled={!canOrder}
+                      className={`font-display font-bold uppercase text-sm px-6 py-3 flex items-center gap-2 transition-all disabled:cursor-not-allowed ${
+                        canOrder
+                          ? "bg-primary text-primary-foreground hover:brightness-110"
+                          : "bg-muted text-muted-foreground"
+                      }`}
                     >
-                      <MessageCircle size={16} />
-                      Order Now
-                    </a>
-                    {showViberTest && (
-                      <a
-                        href={buildViberTestUrl(item.name, 1)}
-                        className="border border-border text-foreground font-display font-bold uppercase text-sm px-6 py-3 flex items-center gap-2 hover:border-primary hover:text-primary transition-all"
-                      >
-                        <MessageCircle size={16} />
-                        Try on Viber
-                      </a>
-                    )}
+                      {canOrder ? (
+                        <>
+                          <ShoppingBag size={16} />
+                          Order Now
+                        </>
+                      ) : (
+                        <>
+                          <Lock size={16} />
+                          Unavailable
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               </motion.div>

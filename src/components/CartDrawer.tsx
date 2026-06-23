@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Plus, Minus, Trash2, MessageCircle, ShoppingBag, ChefHat } from "lucide-react";
+import { Plus, Minus, Trash2, MessageCircle, ShoppingBag, ChefHat, Lock } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useSettings } from "@/hooks/useSettings";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import CheckoutDialog from "@/components/CheckoutDialog";
 
@@ -16,8 +17,15 @@ const CartDrawer = () => {
     setCartOpen,
     cartUrl,
   } = useCart();
+  const { canOrder, settings } = useSettings();
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  // Mirror the checkout breakdown so customers see the full cost up front
+  // instead of having delivery sprung on them at checkout. Same source and
+  // 2.00 fallback as CheckoutDialog.
+  const deliveryFeeEuros = settings ? settings.deliveryFee / 100 : 2.0;
+  const totalEuros = subtotal + deliveryFeeEuros;
 
   return (
     <>
@@ -97,25 +105,53 @@ const CartDrawer = () => {
           {/* Footer */}
           {cartItems.length > 0 && (
             <div className="shrink-0 border-t border-border p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-display font-bold uppercase text-foreground">
-                  Subtotal ({totalItems} items)
-                </span>
-                <span className="font-display text-xl font-black text-primary">
-                  {subtotal.toFixed(2)}€
-                </span>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-body text-sm text-muted-foreground">
+                    Subtotal ({totalItems} items)
+                  </span>
+                  <span className="font-body text-sm text-foreground">
+                    {subtotal.toFixed(2)}€
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-body text-sm text-muted-foreground">
+                    Delivery
+                  </span>
+                  <span className="font-body text-sm text-foreground">
+                    {deliveryFeeEuros.toFixed(2)}€
+                  </span>
+                </div>
+                <div className="flex items-center justify-between border-t border-border pt-2 mt-1">
+                  <span className="font-display font-bold uppercase text-foreground">
+                    Total
+                  </span>
+                  <span className="font-display text-xl font-black text-primary">
+                    {totalEuros.toFixed(2)}€
+                  </span>
+                </div>
               </div>
               <p className="font-body text-xs text-muted-foreground">
-                Prices in EUR. Delivery fee added at checkout. Pay on delivery.
+                Prices in EUR. Pay on delivery.
               </p>
 
               {/* Primary: place order through the kitchen system */}
               <button
                 onClick={() => setCheckoutOpen(true)}
-                className="flex items-center justify-center gap-2 w-full bg-primary text-primary-foreground font-display font-bold uppercase text-sm py-3.5 hover:brightness-110 transition-all"
+                disabled={!canOrder}
+                className="flex items-center justify-center gap-2 w-full bg-primary text-primary-foreground font-display font-bold uppercase text-sm py-3.5 hover:brightness-110 transition-all disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed disabled:hover:brightness-100"
               >
-                <ChefHat size={18} />
-                Place Order
+                {canOrder ? (
+                  <>
+                    <ChefHat size={18} />
+                    Place Order
+                  </>
+                ) : (
+                  <>
+                    <Lock size={18} />
+                    Currently unavailable
+                  </>
+                )}
               </button>
 
               {/* Fallback: WhatsApp, for customers who prefer the old way */}

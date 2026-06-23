@@ -18,14 +18,6 @@ type ApiMenuResponse = {
   items: ApiMenuItem[];
 };
 
-// Valid categories the rest of the app uses. Anything else from the API
-// gets dropped into "other" so it doesn't crash the UI.
-const VALID_CATEGORIES = new Set(["burgers", "sandwiches", "other", "drinks"]);
-
-function toCategory(raw: string): MenuItem["category"] {
-  return VALID_CATEGORIES.has(raw) ? (raw as MenuItem["category"]) : "other";
-}
-
 /**
  * Fetch the menu from the backend and merge with local image/translation data.
  * Returns the menu in the existing `MenuItem` shape so consumer components
@@ -46,7 +38,7 @@ async function fetchMenu(): Promise<MenuItem[]> {
       // Merge in local-only fields by id
       descriptionAl: local?.descriptionAl,
       image: local?.image ?? apiItem.imageUrl ?? "",
-      category: toCategory(apiItem.category),
+      category: apiItem.category,
       tags: local?.tags,
     };
   });

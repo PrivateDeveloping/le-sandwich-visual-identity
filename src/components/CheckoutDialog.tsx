@@ -19,7 +19,9 @@ import {
 import { toast } from "sonner";
 import { useCart } from "@/context/CartContext";
 import { usePlaceOrder } from "@/hooks/usePlaceOrder";
+import { useSettings } from "@/hooks/useSettings";
 import { ApiError, NetworkError } from "@/lib/api";
+import { addActiveOrder } from "@/lib/activeOrders";
 
 const STORAGE_KEY = "le_sandwich_customer";
 
@@ -39,7 +41,22 @@ type Props = {
 
 export default function CheckoutDialog({ open, onOpenChange }: Props) {
   const { cartItems, subtotal, clearCart, setCartOpen } = useCart();
+  const { settings, canOrder } = useSettings();
   const navigate = useNavigate();
+
+  // Delivery fee in euros from settings (defaults to 2.00 if not loaded yet)
+  const deliveryFeeEuros = settings ? settings.deliveryFee / 100 : 2.0;
+  const totalEuros = subtotal + deliveryFeeEuros;
+
+  // Defense in depth: if the restaurant goes paused/closed while this dialog
+  // is open, close it. The button on the cart drawer should also prevent
+  // opening it, but real-time changes during checkout are handled here too.
+  useEffect(() => {
+    if (open && !canOrder && settings) {
+      onOpenChange(false);
+      toast.error("Sorry, we just stopped accepting orders.");
+    }
+  }, [open, canOrder, settings, onOpenChange]);
 
   const placeOrderMutation = usePlaceOrder();
 
@@ -96,6 +113,14 @@ export default function CheckoutDialog({ open, onOpenChange }: Props) {
         }),
       );
 
+      // Remember this order on the device so the customer can return to its
+      // tracking page (via the floating pill) even after closing the tab.
+      addActiveOrder({
+        trackingToken: order.trackingToken,
+        orderNumber: order.orderNumber,
+        placedAt: new Date().toISOString(),
+      });
+
       // Clean up state, then redirect to the live tracking page.
       // The customer never sees an inline success modal — they land directly
       // on a page that shows their order status and updates live.
@@ -107,7 +132,17 @@ export default function CheckoutDialog({ open, onOpenChange }: Props) {
       if (err instanceof NetworkError) {
         toast.error("Could not reach the kitchen. Please try again.");
       } else if (err instanceof ApiError) {
-        toast.error(err.message);
+        // Backend rejected because restaurant is paused or closed.
+        // Force a close — the banner on the page already explains why.
+        const code = (err.body as { code?: string } | null)?.code;
+        if (code === "PAUSED" || code === "CLOSED") {
+          toast.error(err.message);
+          clearCart();
+          setCartOpen(false);
+          onOpenChange(false);
+        } else {
+          toast.error(err.message);
+        }
       } else {
         toast.error("Something went wrong. Please try again.");
       }
@@ -199,11 +234,21 @@ export default function CheckoutDialog({ open, onOpenChange }: Props) {
                   )}
                 />
 
-                <div className="border-t border-border pt-3 flex items-center justify-between">
-                  <span className="font-display font-bold uppercase text-foreground">Total</span>
-                  <span className="font-display text-xl font-black text-primary">
-                    {subtotal.toFixed(2)}€
-                  </span>
+                <div className="border-t border-border pt-3 space-y-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-body text-muted-foreground">Subtotal</span>
+                    <span className="font-body">{subtotal.toFixed(2)}€</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-body text-muted-foreground">Delivery</span>
+                    <span className="font-body">{deliveryFeeEuros.toFixed(2)}€</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1.5 border-t border-border">
+                    <span className="font-display font-bold uppercase text-foreground">Total</span>
+                    <span className="font-display text-xl font-black text-primary">
+                      {totalEuros.toFixed(2)}€
+                    </span>
+                  </div>
                 </div>
 
                 <p className="text-xs text-muted-foreground">
@@ -222,7 +267,7 @@ export default function CheckoutDialog({ open, onOpenChange }: Props) {
                       Placing order...
                     </>
                   ) : (
-                    `Place order — ${subtotal.toFixed(2)}€`
+                    `Place order — ${totalEuros.toFixed(2)}€`
                   )}
                 </Button>
               </form>

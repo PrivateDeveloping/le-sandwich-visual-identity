@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
+import TrackOrderPill from "@/components/TrackOrderPill";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import OrderTracking from "./pages/OrderTracking.tsx";
@@ -21,6 +22,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <CartDrawer />
+          <TrackOrderPill />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/order/:trackingToken" element={<OrderTracking />} />

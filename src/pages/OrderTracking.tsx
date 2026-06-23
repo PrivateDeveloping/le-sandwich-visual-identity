@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -27,6 +27,9 @@ import {
 import { useOrderTracking, type TrackedOrder, type OrderStatus } from "@/hooks/useOrderTracking";
 import { STATUS_COPY, TIMELINE_STEPS, TIMELINE_LABELS } from "@/config/orderStatus";
 import { ApiError, NetworkError } from "@/lib/api";
+import { removeActiveOrder } from "@/lib/activeOrders";
+
+const TERMINAL_STATUSES: OrderStatus[] = ["DELIVERED", "CANCELLED", "DECLINED"];
 
 const STATUS_ICON: Record<OrderStatus, typeof Clock> = {
   PENDING: Clock,
@@ -43,6 +46,14 @@ export default function OrderTracking() {
   const { trackingToken } = useParams<{ trackingToken: string }>();
   const { order, isLoading, isError, cancel, isCancelling } = useOrderTracking(trackingToken);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+
+  // Once an order is done (delivered/cancelled/declined), forget it so the
+  // floating "Track order" pill stops offering it.
+  useEffect(() => {
+    if (order && TERMINAL_STATUSES.includes(order.status)) {
+      removeActiveOrder(order.trackingToken);
+    }
+  }, [order?.status, order?.trackingToken]);
 
   // -------- Loading state --------
   if (isLoading) {
@@ -104,6 +115,14 @@ export default function OrderTracking() {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto space-y-8">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 font-display text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to menu
+        </Link>
+
         <header className="space-y-1">
           <p className="font-display text-xs font-bold uppercase tracking-wider text-muted-foreground">
             Order #{order.orderNumber}

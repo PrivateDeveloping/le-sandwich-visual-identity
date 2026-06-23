@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Minus, ShoppingBag, Check } from "lucide-react";
+import { Plus, Minus, ShoppingBag, Check, Lock } from "lucide-react";
 import type { MenuItem } from "@/config/brand";
 import { useCart } from "@/context/CartContext";
+import { useSettings } from "@/hooks/useSettings";
 
 const MenuItemCard = ({ item }: { item: MenuItem }) => {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
+  const { canOrder } = useSettings();
 
   const handleAdd = () => {
+    if (!canOrder) return;
     addItem(item, qty);
     setAdded(true);
     setQty(1);
@@ -74,27 +77,37 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => {
           <div className="flex items-center border border-border">
             <button
               onClick={() => setQty(Math.max(1, qty - 1))}
-              className="p-2 text-muted-foreground hover:text-primary transition-colors"
+              disabled={!canOrder}
+              className="p-2 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Minus size={14} />
             </button>
             <span className="w-8 text-center font-display font-bold text-foreground text-sm">{qty}</span>
             <button
               onClick={() => setQty(qty + 1)}
-              className="p-2 text-muted-foreground hover:text-primary transition-colors"
+              disabled={!canOrder}
+              className="p-2 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus size={14} />
             </button>
           </div>
           <button
             onClick={handleAdd}
-            className={`flex-1 font-display font-bold uppercase text-xs text-center py-2.5 flex items-center justify-center gap-2 transition-all ${
+            disabled={!canOrder}
+            className={`flex-1 font-display font-bold uppercase text-xs text-center py-2.5 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
               added
                 ? "bg-green-600 text-foreground"
-                : "bg-primary text-primary-foreground hover:brightness-110"
+                : !canOrder
+                  ? "bg-muted text-muted-foreground"
+                  : "bg-primary text-primary-foreground hover:brightness-110"
             }`}
           >
-            {added ? (
+            {!canOrder ? (
+              <>
+                <Lock size={14} />
+                Unavailable
+              </>
+            ) : added ? (
               <>
                 <Check size={14} />
                 Added!

@@ -38,7 +38,7 @@ export type MenuItem = {
   description: string;
   descriptionAl?: string;
   image: string;
-  category: "burgers" | "sandwiches" | "other" | "drinks";
+  category: string; // category slug (managed in the admin dashboard)
   tags?: ("Best Seller" | "Staff Pick" | "Vegetarian" | "New")[];
   note?: string;
 };

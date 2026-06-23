@@ -1,19 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, AlertCircle } from "lucide-react";
 import { useMenu } from "@/hooks/useMenu";
+import { useCategories } from "@/hooks/useCategories";
 import MenuItemCard from "./MenuItemCard";
 
-const CATEGORIES = [
-  { key: "burgers", label: "Burgers" },
-  { key: "sandwiches", label: "Sandwiches" },
-  { key: "other", label: "Other" },
-  { key: "drinks", label: "Drinks" },
-] as const;
-
 const MenuSection = () => {
-  const [active, setActive] = useState<string>("burgers");
+  const [active, setActive] = useState<string>("");
   const { data: items, isLoading, isError } = useMenu();
+  const { data: categories } = useCategories();
+
+  // Default to the first category once they load (and recover if the active
+  // one disappears, e.g. it was removed in admin).
+  useEffect(() => {
+    if (categories && categories.length && !categories.some((c) => c.slug === active)) {
+      setActive(categories[0].slug);
+    }
+  }, [categories, active]);
 
   const filtered = (items ?? []).filter((item) => item.category === active);
 
@@ -36,17 +39,17 @@ const MenuSection = () => {
 
         {/* Category tabs */}
         <div className="flex justify-center gap-2 md:gap-4 mb-12 flex-wrap">
-          {CATEGORIES.map((cat) => (
+          {(categories ?? []).map((cat) => (
             <button
-              key={cat.key}
-              onClick={() => setActive(cat.key)}
+              key={cat.slug}
+              onClick={() => setActive(cat.slug)}
               className={`font-display font-bold uppercase text-sm md:text-base px-5 py-2.5 transition-all border ${
-                active === cat.key
+                active === cat.slug
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-transparent text-muted-foreground border-border hover:border-primary hover:text-primary"
               }`}
             >
-              {cat.label}
+              {cat.name}
             </button>
           ))}
         </div>
